@@ -62,8 +62,4 @@ class UmlsApi:
             cuis[cui] = cui_search_response_json['result']['name']
 
 
-umlsApi = UmlsApi("juest4", "")
-umlsApi.cuiSearch("C0015967")
-cuis = {}
-umlsApi.getRelatedCuis("C0015967", cuis)
-print(cuis)
+
