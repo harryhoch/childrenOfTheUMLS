@@ -33,33 +33,23 @@ class UmlsApi:
         # print r.text
         return r.text
 
-    def getRelatedCuis(self, cui, cuis):
+    def getRelatedCuis(self, cui):
         cui_search_response_string = self.cuiSearch(cui)
         cui_search_response_json = json.loads(cui_search_response_string)
         # print(cui_search_response_json)
+
+        cuis[cui] = cui_search_response_json['result']['name']
 
         ticket = self.getSingleTicket()
         relation_url = cui_search_response_json['result']['relations'] + "?/pageSize=1000&ticket={0}".format(ticket)
         # print(relation_url)
         relation_response_str = requests.get(relation_url).text
-        relation_response = json.loads(relation_response_str)
+        Relation_response = json.loads(relation_response_str)
 
-        # check if there are any broader relationships
-        b_has_broad = False
         for conceptRelation in relation_response['result']:
             if conceptRelation['relationLabel'] == 'RB':
-                b_has_broad = True
-                continue
-
-        # recurse
-        if b_has_broad:
-            for conceptRelation in relation_response['result']:
-                if conceptRelation['relationLabel'] == 'RB':
-                    relatedCui = conceptRelation['relatedId'].rsplit('/', 1)[-1]
-                    self.getRelatedCuis(relatedCui, cuis)
-
-        else:
-            cuis[cui] = cui_search_response_json['result']['name']
-
-
-
+                relatedCui = conceptRelation['relatedId'].rsplit('/', 1)[-1]                    
+                print("recursing on .."+relatedCui)
+                subcuis = self.getRelatedCuis(relatedCui)
+                cuis = {**cuis,**subcuis}
+        return cuis
